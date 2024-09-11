@@ -13,11 +13,11 @@ load_dotenv()
 app = FastAPI()
 
 # Include the routers with their respective prefixes
-app.include_router(books_router, prefix="/books", tags=["books"])
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
+app.include_router(books_router, prefix="/books", tags=["books"], dependencies=[Depends(verify_token)])
 
-# Add global middleware
-app.middleware("http")(auth_middleware)
+# Remove global middleware
+# app.middleware("http")(auth_middleware)
 
 # Implement CORS to control allowed origins
 app.add_middleware(

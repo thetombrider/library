@@ -11,7 +11,7 @@ from middleware import verify_token
 books_router = APIRouter()
 
 @books_router.post("/", response_model=Book)
-async def create_book(book: BookBase, supabase: Client = Depends(get_supabase), user: dict = Depends(verify_token)):
+async def create_book(book: BookBase, supabase: Client = Depends(get_supabase)):
     try:
         response = supabase.table("books").insert(book.dict()).execute()
         if len(response.data) == 0:
