@@ -6,11 +6,12 @@ from models import Book, BookBase, Member, MemberBase, Loan, LoanBase
 from dependencies import get_supabase
 from supabase import Client
 from postgrest.exceptions import APIError
+from middleware import verify_token
 
 books_router = APIRouter()
 
 @books_router.post("/", response_model=Book)
-async def create_book(book: BookBase, supabase: Client = Depends(get_supabase)):
+async def create_book(book: BookBase, supabase: Client = Depends(get_supabase), user: dict = Depends(verify_token)):
     try:
         response = supabase.table("books").insert(book.dict()).execute()
         if len(response.data) == 0:
@@ -23,13 +24,13 @@ async def create_book(book: BookBase, supabase: Client = Depends(get_supabase)):
             raise HTTPException(status_code=500, detail="An error occurred while creating the book")
 
 @books_router.get("/books/", response_model=List[Book])
-async def read_books(supabase: Client = Depends(get_supabase)):
+async def read_books(supabase: Client = Depends(get_supabase), user: dict = Depends(verify_token)):
     response = supabase.table("books").select("*").execute()
     return response.data
 
 
 @books_router.get("/members/", response_model=List[Member])
-async def read_members(supabase: Client = Depends(get_supabase)):
+async def read_members(supabase: Client = Depends(get_supabase), user: dict = Depends(verify_token)):
     try:
         response = supabase.table("members").select("id", "email", "name").execute()
         return response.data
@@ -37,7 +38,7 @@ async def read_members(supabase: Client = Depends(get_supabase)):
         raise HTTPException(status_code=500, detail=f"An error occurred while fetching members: {str(e)}")
 
 @books_router.post("/loans/", response_model=Loan)
-async def create_loan(loan: LoanBase, supabase: Client = Depends(get_supabase)):
+async def create_loan(loan: LoanBase, supabase: Client = Depends(get_supabase), user: dict = Depends(verify_token)):
     book_response = supabase.table("books").select("quantity").eq("id", loan.book_id).execute()
     if len(book_response.data) == 0 or book_response.data[0]['quantity'] <= 0:
         raise HTTPException(status_code=400, detail="Book not available")
@@ -58,12 +59,12 @@ async def create_loan(loan: LoanBase, supabase: Client = Depends(get_supabase)):
     return {**loan_response.data[0]}
 
 @books_router.get("/loans/", response_model=List[Loan])
-async def read_loans(supabase: Client = Depends(get_supabase)):
+async def read_loans(supabase: Client = Depends(get_supabase), user: dict = Depends(verify_token)):
     response = supabase.table("loans").select("*").execute()
     return response.data
 
 @books_router.put("/return/{loan_id}", response_model=Loan)
-async def return_book(loan_id: int, supabase: Client = Depends(get_supabase)):
+async def return_book(loan_id: int, supabase: Client = Depends(get_supabase), user: dict = Depends(verify_token)):
     loan_response = supabase.table("loans").select("*").eq("id", loan_id).execute()
     if len(loan_response.data) == 0 or loan_response.data[0].get('return_date'):
         raise HTTPException(status_code=400, detail="Invalid loan or book already returned")
@@ -77,7 +78,7 @@ async def return_book(loan_id: int, supabase: Client = Depends(get_supabase)):
     return {**update_response.data[0]}
 
 @books_router.post("/members/", response_model=Member)
-async def create_member(member: MemberBase, supabase: Client = Depends(get_supabase)):
+async def create_member(member: MemberBase, supabase: Client = Depends(get_supabase), user: dict = Depends(verify_token)):
     try:
         response = supabase.table("members").insert(member.dict()).execute()
         if len(response.data) == 0:

@@ -13,7 +13,7 @@ url = os.getenv("RENDER_URL")  # Default to localhost if not set
 # Signup credentials
 signup_data = {
     "credentials": {
-        "email": "tommasominuto@gmail.com",
+        "email": "tommasominuto@protonmail.com",
         "password": os.getenv("PASSWORD")
     },
     "profile": {
@@ -21,10 +21,22 @@ signup_data = {
     }
 }
 
+# Try to sign up first
+signup_response = requests.post(f"{url}/auth/signup/", json=signup_data)
+
+if signup_response.status_code == 200:
+    print("Sign up successful!")
+elif signup_response.status_code != 400 or "already registered" not in signup_response.text.lower():
+    print("Sign up failed.")
+    print("Status code:", signup_response.status_code)
+    print("Response:", signup_response.text)
+    exit(1)
+else:
+    print("User already exists, proceeding to sign in.")
 
 # Login credentials
 credentials = {
-    "email": "tommasominuto@gmail.com",
+    "email": "tommasominuto@protonmail.com",
     "password": os.getenv("PASSWORD")
 }
 
@@ -62,6 +74,9 @@ if members_response.status_code == 200:
             "name": "Tommy"
         }
         create_member_response = requests.post(f"{url}/books/members/", json=new_member, headers=headers)
+        print("Create member request URL:", f"{url}/books/members/")
+        print("Create member request headers:", headers)
+        print("Create member request body:", new_member)
         if create_member_response.status_code == 200:
             member_id = create_member_response.json()["id"]
             print("New member created. Member ID:", member_id)
@@ -80,6 +95,9 @@ else:
         "name": "Tommy"
     }
     create_member_response = requests.post(f"{url}/books/members/", json=new_member, headers=headers)
+    print("Create member request URL:", f"{url}/books/members/")
+    print("Create member request headers:", headers)
+    print("Create member request body:", new_member)
     if create_member_response.status_code == 200:
         member_id = create_member_response.json()["id"]
         print("New member created. Member ID:", member_id)
