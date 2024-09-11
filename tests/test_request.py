@@ -13,26 +13,13 @@ url = os.getenv("RENDER_URL")  # Default to localhost if not set
 # Signup credentials
 signup_data = {
     "credentials": {
-        "email": f"john.doe{random.randint(1, 1000)}@example.com",
-        "password": "password123"
+        "email": os.getenv("USERNAME"),
+        "password": os.getenv("PASSWORD")
     },
     "profile": {
-        "full_name": "John Doe"
+        "full_name": "Tommy"
     }
 }
-
-# Sign up a new user
-signup_response = requests.post(f"{url}/auth/signup", json=signup_data)
-
-if signup_response.status_code == 200:
-    print("Sign up successful!")
-    member_id = signup_response.json()["member"]["id"]
-    print("Member ID:", member_id)
-else:
-    print("Sign up failed.")
-    print("Status code:", signup_response.status_code)
-    print("Response:", signup_response.text)
-    exit(1)
 
 # Login credentials
 credentials = {
