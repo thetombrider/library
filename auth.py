@@ -19,12 +19,13 @@ class UserProfile(BaseModel):
 @auth_router.post("/signup")
 async def api_sign_up(credentials: UserCredentials, profile: UserProfile, supabase: Client = Depends(get_supabase)):
     try:
-        # Sign up the user
+        # Sign up the user with email confirmation suppressed
         auth_response = supabase.auth.sign_up({
             "email": credentials.email,
             "password": credentials.password,
             "options": {
-                "data": profile.dict(exclude_none=True)
+                "data": profile.dict(exclude_none=True),
+                "email_confirm": False  # Suppress email confirmation
             }
         })
         
