@@ -13,7 +13,7 @@ url = os.getenv("RENDER_URL")  # Default to localhost if not set
 # Signup credentials
 signup_data = {
     "credentials": {
-        "email": os.getenv("USERNAME"),
+        "email": "tommasominuto@gmail.com",
         "password": os.getenv("PASSWORD")
     },
     "profile": {
@@ -21,9 +21,10 @@ signup_data = {
     }
 }
 
+
 # Login credentials
 credentials = {
-    "email": os.getenv("USERNAME"),
+    "email": "tommasominuto@gmail.com",
     "password": os.getenv("PASSWORD")
 }
 
@@ -55,13 +56,38 @@ if members_response.status_code == 200:
         member_id = members[0]["id"]
         print("Using Member ID:", member_id)
     else:
-        print("No members found. Please sign up a new user first.")
-        exit(1)
+        print("No members found. Creating a new member...")
+        new_member = {
+            "email": "tommasominuto@gmail.com",
+            "name": "Tommy"
+        }
+        create_member_response = requests.post(f"{url}/books/members/", json=new_member, headers=headers)
+        if create_member_response.status_code == 200:
+            member_id = create_member_response.json()["id"]
+            print("New member created. Member ID:", member_id)
+        else:
+            print("Failed to create new member.")
+            print("Status code:", create_member_response.status_code)
+            print("Response:", create_member_response.text)
+            exit(1)
 else:
     print("Failed to retrieve members.")
     print("Status code:", members_response.status_code)
     print("Response:", members_response.text)
-    exit(1)
+    print("Creating a new member...")
+    new_member = {
+        "email": "tommasominuto@gmail.com",
+        "name": "Tommy"
+    }
+    create_member_response = requests.post(f"{url}/books/members/", json=new_member, headers=headers)
+    if create_member_response.status_code == 200:
+        member_id = create_member_response.json()["id"]
+        print("New member created. Member ID:", member_id)
+    else:
+        print("Failed to create new member.")
+        print("Status code:", create_member_response.status_code)
+        print("Response:", create_member_response.text)
+        exit(1)
 
 # Generate a unique ISBN
 isbn = f"9780{random.randint(10, 99)}{random.randint(100000, 999999)}{random.randint(0, 9)}"
