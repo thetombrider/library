@@ -23,8 +23,8 @@ signup_data = {
 
 # Login credentials
 credentials = {
-    "email": signup_data["credentials"]["email"],
-    "password": signup_data["credentials"]["password"]
+    "email": os.getenv("USERNAME"),
+    "password": os.getenv("PASSWORD")
 }
 
 # Sign in to get the access token
