@@ -23,8 +23,8 @@ async def create_book(book: BookBase, supabase: Client = Depends(get_supabase)):
         else:
             raise HTTPException(status_code=500, detail="An error occurred while creating the book")
 
-@books_router.get("/books/", response_model=List[Book])
-async def read_books(supabase: Client = Depends(get_supabase), user: dict = Depends(verify_token)):
+@books_router.get("/", response_model=List[Book])
+async def read_books(supabase: Client = Depends(get_supabase)):
     response = supabase.table("books").select("*").execute()
     return response.data
 
