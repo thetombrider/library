@@ -6,33 +6,33 @@ from models import Book, BookBase, Member, MemberBase, Loan, LoanBase
 from dependencies import get_supabase
 from supabase import Client
 
-router = APIRouter()
+books_router = APIRouter()
 
-@router.post("/books/", response_model=Book)
+@books_router.post("/books/", response_model=Book)
 async def create_book(book: BookBase, supabase: Client = Depends(get_supabase)):
     response = supabase.table("books").insert(book.dict()).execute()
     if len(response.data) == 0:
         raise HTTPException(status_code=400, detail="Failed to create book")
     return {**response.data[0]}
 
-@router.get("/books/", response_model=List[Book])
+@books_router.get("/books/", response_model=List[Book])
 async def read_books(supabase: Client = Depends(get_supabase)):
     response = supabase.table("books").select("*").execute()
     return response.data
 
-@router.post("/members/", response_model=Member)
+@books_router.post("/members/", response_model=Member)
 async def create_member(member: MemberBase, supabase: Client = Depends(get_supabase)):
     response = supabase.table("members").insert(member.dict()).execute()
     if len(response.data) == 0:
         raise HTTPException(status_code=400, detail="Failed to create member")
     return {**response.data[0]}
 
-@router.get("/members/", response_model=List[Member])
+@books_router.get("/members/", response_model=List[Member])
 async def read_members(supabase: Client = Depends(get_supabase)):
     response = supabase.table("members").select("*").execute()
     return response.data
 
-@router.post("/loans/", response_model=Loan)
+@books_router.post("/loans/", response_model=Loan)
 async def create_loan(loan: LoanBase, supabase: Client = Depends(get_supabase)):
     book_response = supabase.table("books").select("quantity").eq("id", loan.book_id).execute()
     if len(book_response.data) == 0 or book_response.data[0]['quantity'] <= 0:
@@ -47,12 +47,12 @@ async def create_loan(loan: LoanBase, supabase: Client = Depends(get_supabase)):
     
     return {**loan_response.data[0]}
 
-@router.get("/loans/", response_model=List[Loan])
+@books_router.get("/loans/", response_model=List[Loan])
 async def read_loans(supabase: Client = Depends(get_supabase)):
     response = supabase.table("loans").select("*").execute()
     return response.data
 
-@router.put("/return/{loan_id}", response_model=Loan)
+@books_router.put("/return/{loan_id}", response_model=Loan)
 async def return_book(loan_id: int, supabase: Client = Depends(get_supabase)):
     loan_response = supabase.table("loans").select("*").eq("id", loan_id).execute()
     if len(loan_response.data) == 0 or loan_response.data[0].get('return_date'):

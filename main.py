@@ -1,12 +1,28 @@
 # main.py
 from fastapi import FastAPI, Depends
-from routes import router
+from routes import books_router
+from auth import auth_router
 from dependencies import get_supabase
+from fastapi.middleware.cors import CORSMiddleware
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = FastAPI()
 
-# Include the router and pass the Supabase client
-app.include_router(router, dependencies=[Depends(get_supabase)])
+# Include the routers with their respective prefixes
+app.include_router(books_router, prefix="/books", tags=["books"])
+app.include_router(auth_router, prefix="/auth", tags=["auth"])
+
+# Implement CORS to control allowed origins
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[os.getenv("RENDER_URL")],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 if __name__ == "__main__":
     import uvicorn
