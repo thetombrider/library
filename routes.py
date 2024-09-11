@@ -27,16 +27,10 @@ async def read_books(supabase: Client = Depends(get_supabase)):
     response = supabase.table("books").select("*").execute()
     return response.data
 
-@books_router.post("/members/", response_model=Member)
-async def create_member(member: MemberBase, supabase: Client = Depends(get_supabase)):
-    response = supabase.table("members").insert(member.dict()).execute()
-    if len(response.data) == 0:
-        raise HTTPException(status_code=400, detail="Failed to create member")
-    return {**response.data[0]}
 
 @books_router.get("/members/", response_model=List[Member])
 async def read_members(supabase: Client = Depends(get_supabase)):
-    response = supabase.table("members").select("*").execute()
+    response = supabase.table("members").select("id", "email", "name").execute()
     return response.data
 
 @books_router.post("/loans/", response_model=Loan)

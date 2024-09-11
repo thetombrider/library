@@ -10,10 +10,34 @@ load_dotenv()
 # API endpoint URL (replace with your actual deployed API URL)
 url = os.getenv("RENDER_URL")  # Default to localhost if not set
 
+# Signup credentials
+signup_data = {
+    "credentials": {
+        "email": f"john.doe{random.randint(1, 1000)}@example.com",
+        "password": "password123"
+    },
+    "profile": {
+        "full_name": "John Doe"
+    }
+}
+
+# Sign up a new user
+signup_response = requests.post(f"{url}/auth/signup", json=signup_data)
+
+if signup_response.status_code == 200:
+    print("Sign up successful!")
+    member_id = signup_response.json()["member"]["id"]
+    print("Member ID:", member_id)
+else:
+    print("Sign up failed.")
+    print("Status code:", signup_response.status_code)
+    print("Response:", signup_response.text)
+    exit(1)
+
 # Login credentials
 credentials = {
-    "email": "tommasominuto@gmail.com",  # Replace with actual librarian email
-    "password": "2000tommy"  # Replace with actual password
+    "email": signup_data["credentials"]["email"],
+    "password": signup_data["credentials"]["password"]
 }
 
 # Sign in to get the access token
@@ -34,22 +58,22 @@ headers = {
     "Content-Type": "application/json"
 }
 
-# Create a new member
-new_member = {
-    "name": "John Doe",
-    "email": f"john.doe{random.randint(1, 1000)}@example.com"
-}
+# Get existing members
+members_response = requests.get(f"{url}/books/members/", headers=headers)
 
-member_response = requests.post(f"{url}/books/members/", json=new_member, headers=headers)
-
-if member_response.status_code == 200:
-    print("Member added successfully!")
-    member_id = member_response.json()["id"]
-    print("Member ID:", member_id)
+if members_response.status_code == 200:
+    print("Members retrieved successfully!")
+    members = members_response.json()
+    if members:
+        member_id = members[0]["id"]
+        print("Using Member ID:", member_id)
+    else:
+        print("No members found. Please sign up a new user first.")
+        exit(1)
 else:
-    print("Failed to add member.")
-    print("Status code:", member_response.status_code)
-    print("Response:", member_response.text)
+    print("Failed to retrieve members.")
+    print("Status code:", members_response.status_code)
+    print("Response:", members_response.text)
     exit(1)
 
 # Generate a unique ISBN

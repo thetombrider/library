@@ -13,11 +13,11 @@ class Book(BookBase):
     id: int
 
 class MemberBase(BaseModel):
-    name: str
     email: str
+    name: str
 
 class Member(MemberBase):
-    id: int
+    id: str
 
 class LoanBase(BaseModel):
     book_id: int

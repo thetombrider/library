@@ -29,18 +29,20 @@ async def api_sign_up(credentials: UserCredentials, profile: UserProfile, supaba
         })
         
         if auth_response.user:
-            # Create profile in the profiles table
-            profile_data = {
+            # Create member in the members table
+            member_data = {
                 "id": auth_response.user.id,
-                "full_name": profile.full_name,
-                "avatar_url": profile.avatar_url
+                "email": credentials.email,
+                "name": profile.full_name or credentials.email.split('@')[0]  # Use email username if full_name is not provided
             }
-            profile_response = supabase.table('profiles').insert(profile_data).execute()
+            member_response = supabase.table('members').insert(member_data).execute()
             
-            if profile_response.data:
-                return {"message": "Sign up successful", "user": auth_response.user, "profile": profile_response.data[0]}
+            if member_response.data:
+                return {"message": "Sign up successful", "user": auth_response.user, "member": member_response.data[0]}
             else:
-                raise HTTPException(status_code=400, detail="Failed to create user profile")
+                # If member creation fails, delete the auth user
+                supabase.auth.admin.delete_user(auth_response.user.id)
+                raise HTTPException(status_code=400, detail="Failed to create member")
         else:
             raise HTTPException(status_code=400, detail="Failed to create user")
     except Exception as e:
