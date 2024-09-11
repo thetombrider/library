@@ -1,7 +1,7 @@
 # routes.py
 from fastapi import APIRouter, HTTPException, Depends
 from typing import List
-from datetime import datetime
+from datetime import datetime, timedelta
 from models import Book, BookBase, Member, MemberBase, Loan, LoanBase
 from dependencies import get_supabase
 from supabase import Client
@@ -45,7 +45,13 @@ async def create_loan(loan: LoanBase, supabase: Client = Depends(get_supabase)):
     if len(book_response.data) == 0 or book_response.data[0]['quantity'] <= 0:
         raise HTTPException(status_code=400, detail="Book not available")
     
-    loan_data = {**loan.dict(), "loan_date": datetime.utcnow().isoformat()}
+    loan_date = datetime.utcnow()
+    return_date = loan_date + timedelta(days=30)
+    loan_data = {
+        **loan.dict(),
+        "loan_date": loan_date.isoformat(),
+        "return_date": return_date.isoformat()
+    }
     loan_response = supabase.table("loans").insert(loan_data).execute()
     if len(loan_response.data) == 0:
         raise HTTPException(status_code=400, detail="Failed to create loan")

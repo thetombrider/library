@@ -2,6 +2,7 @@ import requests
 import json
 from dotenv import load_dotenv
 import os
+import random
 
 # Load environment variables
 load_dotenv()
@@ -27,26 +28,66 @@ else:
     print("Response:", signin_response.text)
     exit(1)
 
-# Book data
-new_book = {
-    "title": "The Great Gatsby",
-    "author": "F. Scott Fitzgerald",
-    "isbn": "9780743273565",
-    "quantity": 5
-}
-
-# Send POST request with authentication
+# Headers for authenticated requests
 headers = {
     "Authorization": f"Bearer {access_token}",
     "Content-Type": "application/json"
 }
-response = requests.post(f"{url}/books/books", json=new_book, headers=headers)
 
-# Check the response
-if response.status_code == 200:
+# Create a new member
+new_member = {
+    "name": "John Doe",
+    "email": f"john.doe{random.randint(1, 1000)}@example.com"
+}
+
+member_response = requests.post(f"{url}/books/members/", json=new_member, headers=headers)
+
+if member_response.status_code == 200:
+    print("Member added successfully!")
+    member_id = member_response.json()["id"]
+    print("Member ID:", member_id)
+else:
+    print("Failed to add member.")
+    print("Status code:", member_response.status_code)
+    print("Response:", member_response.text)
+    exit(1)
+
+# Generate a unique ISBN
+isbn = f"9780{random.randint(10, 99)}{random.randint(100000, 999999)}{random.randint(0, 9)}"
+
+# Book data
+new_book = {
+    "title": "The Great Gatsby",
+    "author": "F. Scott Fitzgerald",
+    "isbn": isbn,
+    "quantity": 5
+}
+
+# Add a new book
+book_response = requests.post(f"{url}/books/", json=new_book, headers=headers)
+
+if book_response.status_code == 200:
     print("Book added successfully!")
-    print("Response:", json.dumps(response.json(), indent=2))
+    book_id = book_response.json()["id"]
+    print("Book ID:", book_id)
 else:
     print("Failed to add book.")
-    print("Status code:", response.status_code)
-    print("Response:", response.text)
+    print("Status code:", book_response.status_code)
+    print("Response:", book_response.text)
+    exit(1)
+
+# Create a new loan
+new_loan = {
+    "book_id": book_id,
+    "member_id": member_id
+}
+
+loan_response = requests.post(f"{url}/books/loans/", json=new_loan, headers=headers)
+
+if loan_response.status_code == 200:
+    print("Loan created successfully!")
+    print("Response:", json.dumps(loan_response.json(), indent=2))
+else:
+    print("Failed to create loan.")
+    print("Status code:", loan_response.status_code)
+    print("Response:", loan_response.text)
