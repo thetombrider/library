@@ -5,15 +5,22 @@ from datetime import datetime
 from models import Book, BookBase, Member, MemberBase, Loan, LoanBase
 from dependencies import get_supabase
 from supabase import Client
+from postgrest.exceptions import APIError
 
 books_router = APIRouter()
 
-@books_router.post("/books/", response_model=Book)
+@books_router.post("/", response_model=Book)
 async def create_book(book: BookBase, supabase: Client = Depends(get_supabase)):
-    response = supabase.table("books").insert(book.dict()).execute()
-    if len(response.data) == 0:
-        raise HTTPException(status_code=400, detail="Failed to create book")
-    return {**response.data[0]}
+    try:
+        response = supabase.table("books").insert(book.dict()).execute()
+        if len(response.data) == 0:
+            raise HTTPException(status_code=400, detail="Failed to create book")
+        return {**response.data[0]}
+    except APIError as e:
+        if e.code == '23505' and 'books_isbn_key' in str(e):
+            raise HTTPException(status_code=400, detail="A book with this ISBN already exists")
+        else:
+            raise HTTPException(status_code=500, detail="An error occurred while creating the book")
 
 @books_router.get("/books/", response_model=List[Book])
 async def read_books(supabase: Client = Depends(get_supabase)):
